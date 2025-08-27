@@ -1,87 +1,67 @@
-# ultralytics_ros
+# ultralytics_ros (make87 Fork)
+
+**This is a make87-specific fork of the original [ultralytics_ros](https://github.com/Alpaca-zip/ultralytics_ros) package, tailored for deployment on the [make87 platform](https://make87.com).**
+
 ### Introduction
-ROS/ROS 2 package for real-time object detection and segmentation using the Ultralytics YOLO, enabling flexible integration with various robotics applications.
+ROS 2 package for real-time object detection and segmentation using the Ultralytics YOLO, optimized for containerized deployment with make87's configuration management and Zenoh networking.
 
-|  `tracker_node`  |  `tracker_with_cloud_node`  |
-| :------------: | :-----------------------: |
-| <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/7ccefee5-1bf9-48de-97e0-a61000bba822" width="450px"> | <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/674f352f-5171-4fcf-beb5-394aa3dfe320" height="160px"> |
+|  `tracker_node`  |
+| :------------: |
+| <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/7ccefee5-1bf9-48de-97e0-a61000bba822" width="450px"> |
 
-- The `tracker_node` provides real-time object detection on incoming ROS/ROS 2 image messages using the Ultralytics YOLO model.
-- The `tracker_with_cloud_node` provides functionality for 3D object detection by integrating 2D detections, mask image, LiDAR data, and camera information.
+- The `tracker_node` provides real-time object detection on incoming ROS 2 image messages using the Ultralytics YOLO model.
+- Configured entirely through make87's `MAKE87_CONFIG` environment variable.
+- Uses Zenoh middleware for efficient networking.
 
-### Status
-| ROS distro | Industrial CI | Docker |
-| :--------: | :-----------: | :----: |
-|  ROS Melodic | [![ROS-melodic Industrial CI](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/melodic-ci.yml/badge.svg)](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/melodic-ci.yml) | [![ROS-melodic Docker Build Check](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/melodic-docker-build-check.yml/badge.svg)](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/melodic-docker-build-check.yml)
-|  ROS Noetic | [![ROS-noetic Industrial CI](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/noetic-ci.yml/badge.svg)](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/noetic-ci.yml) | [![ROS-noetic Docker Build Check](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/noetic-docker-build-check.yml/badge.svg)](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/noetic-docker-build-check.yml)
-|  ROS 2 Humble | [![ROS2-humble Industrial CI](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/humble-ci.yml/badge.svg)](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/humble-ci.yml) | [![ROS2-humble Docker Build Check](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/humble-docker-build-check.yml/badge.svg)](https://github.com/Alpaca-zip/ultralytics_ros/actions/workflows/humble-docker-build-check.yml)
+## make87 Deployment
+This package is designed to run on the make87 platform. Configuration is handled automatically through:
+- **MAKE87.yml**: Defines interfaces, publishers, subscribers, and configuration parameters
+- **Entrypoint script**: Parses make87 configuration and launches the node with appropriate parameters
+- **Containerized build**: Multi-stage Docker build optimized for production deployment
 
-## Setup ⚙
-### ROS Melodic
-```bash
-$ cd ~/{ROS_WORKSPACE}/src
-$ GIT_LFS_SKIP_SMUDGE=1 git clone -b melodic-devel https://github.com/Alpaca-zip/ultralytics_ros.git
-$ rosdep install -r -y -i --from-paths .
-$ pip install pipenv
-$ cd ultralytics_ros
-$ pipenv install
-$ pipenv shell
-$ cd ~/{ROS_WORKSPACE} && catkin build
-```
-### ROS Noetic
-```bash
-$ cd ~/{ROS_WORKSPACE}/src
-$ GIT_LFS_SKIP_SMUDGE=1 git clone -b noetic-devel https://github.com/Alpaca-zip/ultralytics_ros.git
-$ rosdep install -r -y -i --from-paths .
-$ python3 -m pip install -r ultralytics_ros/requirements.txt
-$ cd ~/{ROS_WORKSPACE} && catkin build
-```
-### ROS 2 Humble
+## Development Setup
+For local development outside of make87:
+
 ```bash
 $ cd ~/{ROS2_WORKSPACE}/src
-$ GIT_LFS_SKIP_SMUDGE=1 git clone -b humble-devel https://github.com/Alpaca-zip/ultralytics_ros.git
+$ git clone https://github.com/make87-apps/ultralytics_ros.git
+$ cd ~/{ROS2_WORKSPACE}
 $ rosdep install -r -y -i --from-paths .
 $ python3 -m pip install -r ultralytics_ros/requirements.txt
-$ cd ~/{ROS2_WORKSPACE} && $ colcon build
+$ colcon build
 ```
-**NOTE**: If you want to download KITTI datasets, remove `GIT_LFS_SKIP_SMUDGE=1` from the command line.
 
-## Run 🚀
-### ROS Melodic & ROS Noetic
-**`tracker_node`**
+## Development Usage
+Run the tracker node directly with parameters:
+
 ```bash
-$ roslaunch ultralytics_ros tracker.launch debug:=true
+$ ros2 run ultralytics_ros tracker_node.py \
+  --ros-args \
+  -p input_topic:="/camera/image_raw" \
+  -p result_image_topic:="/yolo/result_image" \
+  -p result_topic:="/yolo/detections" \
+  -p yolo_model:="yolov8n.pt" \
+  -p confidence_threshold:=0.25 \
+  -p iou_threshold:=0.45 \
+  -p tracker_type:="bytetrack"
 ```
-**`tracker_node` & `tracker_with_cloud_node`**
-```bash
-$ roslaunch ultralytics_ros tracker_with_cloud.launch debug:=true
-```
-### ROS 2 Humble
-**`tracker_node`**
-```bash
-$ ros2 launch ultralytics_ros tracker.launch.xml debug:=true
-```
-**`tracker_node` & `tracker_with_cloud_node`**
-```bash
-$ ros2 launch ultralytics_ros tracker_with_cloud.launch.xml debug:=true
-```
-**NOTE**: If the 3D bounding box is not displayed correctly, please consider using a lighter yolo model(`yolov8n.pt`) or increasing the `voxel_leaf_size`.
 
 ## `tracker_node`
 ### Params
 - `yolo_model`: Pre-trained Weights.
 For yolov8, you can choose `yolov8*.pt`, `yolov8*-seg.pt`.
 
-  |  YOLOv8  |  <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/08770080-bf20-470b-8269-eee7a7c41acc" width="350px">  |
+  |  YOLOv8  |  YOLOv8-seg  |
   | :-------------: | :-------------: |
-  |  **YOLOv8-seg**  |  <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/7bb6650c-769d-41c1-86f7-39fcbf01bc7c" width="350px">  |
+  | <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/08770080-bf20-470b-8269-eee7a7c41acc" width="350px"> | <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/7bb6650c-769d-41c1-86f7-39fcbf01bc7c" width="350px"> |
 
   See also: https://docs.ultralytics.com/models/
 - `confidence_threshold`: Confidence threshold below which boxes will be filtered out (default: 0.25).
 - `iou_threshold`: IoU threshold below which boxes will be filtered out during NMS (default: 0.45).
 - `tracker_type`: Tracking algorithms (bytetrack, botsort) (default: "bytetrack").
 
-**Note**: Topic names (`input_topic`, `result_topic`, `result_image_topic`) are configured through the MAKE87 platform interface definitions.
+**Note**: Topic names (`input_topic`, `result_topic`, `result_image_topic`) are configured through the make87 platform interface definitions.
+
 ### Topics
 - Subscribed Topics:
   - Image data from `input_topic` parameter. ([sensor_msgs/Image](https://github.com/ros2/common_interfaces/blob/humble/sensor_msgs/msg/Image.msg))
@@ -93,3 +73,14 @@ For yolov8, you can choose `yolov8*.pt`, `yolov8*-seg.pt`.
     vision_msgs/Detection2DArray detections
     sensor_msgs/Image[] masks
     ```
+
+## Changes from Original
+This make87 fork includes the following modifications:
+- **Python-only**: Removed C++ components (`tracker_with_cloud_node`)
+- **make87 Configuration**: Replaced launch files with MAKE87_CONFIG parsing
+- **Zenoh Networking**: Configured for make87's Zenoh middleware
+- **Containerized**: Multi-stage Docker build for optimized deployment
+- **Simplified Parameters**: Reduced to core detection parameters only
+
+## Original Repository
+For the original multi-language (Python/C++) version with launch files and additional features, see: https://github.com/Alpaca-zip/ultralytics_ros
