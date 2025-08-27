@@ -77,11 +77,19 @@ class TrackerNode(Node):
         sanitized_result_topic = self._sanitize_topic_name(result_topic)
         sanitized_result_image_topic = self._sanitize_topic_name(result_image_topic)
         
+        # Log topic sanitization
+        self.get_logger().info(f"Original result topic: '{result_topic}' -> Sanitized: '{sanitized_result_topic}'")
+        self.get_logger().info(f"Original result image topic: '{result_image_topic}' -> Sanitized: '{sanitized_result_image_topic}'")
+        
         self.create_subscription(Image, input_topic, self.image_callback, 1)
+        self.get_logger().info(f"Created subscription on topic: '{input_topic}'")
+        
         self.results_pub = self.create_publisher(YoloResult, sanitized_result_topic, 1)
         self.result_image_pub = self.create_publisher(Image, sanitized_result_image_topic, 1)
+        self.get_logger().info(f"Created publishers on topics: '{sanitized_result_topic}' and '{sanitized_result_image_topic}'")
 
     def image_callback(self, msg):
+        self.get_logger().debug(f"Received image message with timestamp: {msg.header.stamp.sec}.{msg.header.stamp.nanosec}")
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
 
         conf_thres = self.get_parameter("conf_thres").get_parameter_value().double_value
@@ -113,6 +121,11 @@ class TrackerNode(Node):
             yolo_result_image_msg = self.create_result_image(results)
             if self.use_segmentation:
                 yolo_result_msg.masks = self.create_segmentation_masks(results)
+            
+            # Log publishing results
+            num_detections = len(yolo_result_msg.detections.detections)
+            self.get_logger().debug(f"Publishing {num_detections} detections to result topics")
+            
             self.results_pub.publish(yolo_result_msg)
             self.result_image_pub.publish(yolo_result_image_msg)
 
