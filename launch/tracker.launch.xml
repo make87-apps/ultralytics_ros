@@ -38,8 +38,4 @@
     <!--<param name="classes" value="0, 1, 2" value-sep=", "/>-->
     <param name="device" value="$(var device)"/>
   </node>
-
-  <node if="$(var debug)" pkg="image_view" exec="image_view" output="screen">
-    <remap from="image" to="$(var result_image_topic)"/>
-  </node>
 </launch>

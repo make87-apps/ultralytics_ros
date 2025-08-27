@@ -7,14 +7,10 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 # Build essentials + colcon + python packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    build-essential \
-    cmake \
     python3-colcon-common-extensions \
     python3-pip \
     ros-${ROS_DISTRO}-cv-bridge \
-    ros-${ROS_DISTRO}-image-geometry \
     ros-${ROS_DISTRO}-vision-msgs \
-    ros-${ROS_DISTRO}-pcl-* \
     && rm -rf /var/lib/apt/lists/*
 
 # Workspace lives at /opt/ws; your Docker build context is the repo root (.)
@@ -38,10 +34,8 @@ SHELL ["/bin/bash", "-c"]
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-rmw-zenoh-cpp \
     ros-${ROS_DISTRO}-cv-bridge \
-    ros-${ROS_DISTRO}-image-geometry \
     ros-${ROS_DISTRO}-vision-msgs \
     ros-${ROS_DISTRO}-image-view \
-    ros-${ROS_DISTRO}-pcl-* \
     python3-pip \
     jq \
     git \

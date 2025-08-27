@@ -421,6 +421,81 @@ source_workspace_setup() {
     log_info "Successfully sourced workspace setup"
 }
 
+parse_make87_config() {
+    log_info "Parsing MAKE87_CONFIG for ROS2 parameters..."
+
+    # Parse config section for ROS2 parameters
+    export ROS2_INPUT_TOPIC=$(echo "${MAKE87_CONFIG}" | jq -r '.config.input_topic // "/camera/image_raw"')
+    export ROS2_RESULT_IMAGE_TOPIC=$(echo "${MAKE87_CONFIG}" | jq -r '.config.result_image_topic // "/yolo/result_image"')
+    export ROS2_RESULT_TOPIC=$(echo "${MAKE87_CONFIG}" | jq -r '.config.result_topic // "/yolo/detections"')
+    export ROS2_YOLO_MODEL=$(echo "${MAKE87_CONFIG}" | jq -r '.config.yolo_model // "yolov8n.pt"')
+    export ROS2_CONFIDENCE_THRESHOLD=$(echo "${MAKE87_CONFIG}" | jq -r '.config.confidence_threshold // 0.25')
+    export ROS2_IOU_THRESHOLD=$(echo "${MAKE87_CONFIG}" | jq -r '.config.iou_threshold // 0.45')
+    export ROS2_TRACKER_TYPE=$(echo "${MAKE87_CONFIG}" | jq -r '.config.tracker_type // "bytetrack"')
+    export ROS2_DEVICE=$(echo "${MAKE87_CONFIG}" | jq -r '.config.device // "cpu"')
+
+    # Override topic names from interface definitions if they exist
+    local input_topic_from_interface
+    local result_image_topic_from_interface  
+    local result_topic_from_interface
+
+    # Extract topic names from subscribers (input_image)
+    input_topic_from_interface=$(echo "${MAKE87_CONFIG}" | jq -r '
+        .interfaces[]? 
+        | select(.name == "ros")
+        | .subscribers[]?
+        | select(.name == "input_image")
+        | .topic_key // empty
+    ')
+
+    # Extract topic names from publishers (result_image and detections)
+    result_image_topic_from_interface=$(echo "${MAKE87_CONFIG}" | jq -r '
+        .interfaces[]?
+        | select(.name == "ros")
+        | .publishers[]?
+        | select(.name == "result_image")
+        | .topic_key // empty
+    ')
+
+    result_topic_from_interface=$(echo "${MAKE87_CONFIG}" | jq -r '
+        .interfaces[]?
+        | select(.name == "ros")
+        | .publishers[]?
+        | select(.name == "detections")
+        | .topic_key // empty
+    ')
+
+    # Use interface topic names if available, sanitize them
+    if [[ -n "${input_topic_from_interface}" && "${input_topic_from_interface}" != "null" ]]; then
+        # Replace dashes with underscores and add make87_ prefix
+        sanitized_topic=$(echo "${input_topic_from_interface}" | tr '-' '_')
+        export ROS2_INPUT_TOPIC="make87_${sanitized_topic}"
+        log_info "Using interface topic for input: ${ROS2_INPUT_TOPIC}"
+    fi
+
+    if [[ -n "${result_image_topic_from_interface}" && "${result_image_topic_from_interface}" != "null" ]]; then
+        sanitized_topic=$(echo "${result_image_topic_from_interface}" | tr '-' '_')
+        export ROS2_RESULT_IMAGE_TOPIC="make87_${sanitized_topic}"
+        log_info "Using interface topic for result image: ${ROS2_RESULT_IMAGE_TOPIC}"
+    fi
+
+    if [[ -n "${result_topic_from_interface}" && "${result_topic_from_interface}" != "null" ]]; then
+        sanitized_topic=$(echo "${result_topic_from_interface}" | tr '-' '_')
+        export ROS2_RESULT_TOPIC="make87_${sanitized_topic}"
+        log_info "Using interface topic for detections: ${ROS2_RESULT_TOPIC}"
+    fi
+
+    log_info "ROS2 Configuration:"
+    log_info "  Input topic: ${ROS2_INPUT_TOPIC}"
+    log_info "  Result image topic: ${ROS2_RESULT_IMAGE_TOPIC}"
+    log_info "  Result topic: ${ROS2_RESULT_TOPIC}"
+    log_info "  YOLO model: ${ROS2_YOLO_MODEL}"
+    log_info "  Confidence threshold: ${ROS2_CONFIDENCE_THRESHOLD}"
+    log_info "  IoU threshold: ${ROS2_IOU_THRESHOLD}"
+    log_info "  Tracker type: ${ROS2_TRACKER_TYPE}"
+    log_info "  Device: ${ROS2_DEVICE}"
+}
+
 configure_zenoh() {
     log_info "Configuring Zenoh networking..."
 
@@ -494,14 +569,26 @@ main() {
     source_ros_entrypoint
     source_workspace_setup
     configure_zenoh
+    
+    # Parse MAKE87_CONFIG and set ROS2 parameters
+    parse_make87_config
 
-    # Launch ROS2 node
+    # Launch ROS2 node with parameters
     log_info "Launching ROS2 node: ${PACKAGE_NAME}/${NODE_NAME}"
     log_info "Press Ctrl+C to stop the node"
 
     # Use exec to replace the shell process with the ROS2 node
     # This ensures proper signal handling and resource management
-    exec ros2 run "${PACKAGE_NAME}" "${NODE_NAME}"
+    exec ros2 run "${PACKAGE_NAME}" "${NODE_NAME}" \
+        --ros-args \
+        -p input_topic:="${ROS2_INPUT_TOPIC}" \
+        -p result_image_topic:="${ROS2_RESULT_IMAGE_TOPIC}" \
+        -p result_topic:="${ROS2_RESULT_TOPIC}" \
+        -p yolo_model:="${ROS2_YOLO_MODEL}" \
+        -p confidence_threshold:=${ROS2_CONFIDENCE_THRESHOLD} \
+        -p iou_threshold:=${ROS2_IOU_THRESHOLD} \
+        -p tracker_type:="${ROS2_TRACKER_TYPE}" \
+        -p device:="${ROS2_DEVICE}"
 }
 
 #==============================================================================

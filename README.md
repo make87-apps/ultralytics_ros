@@ -69,13 +69,13 @@ $ ros2 launch ultralytics_ros tracker_with_cloud.launch.xml debug:=true
 
 ## `tracker_node`
 ### Params
-- `yolo_model`: Pre-trained Weights.  
+- `yolo_model`: Pre-trained Weights.
 For yolov8, you can choose `yolov8*.pt`, `yolov8*-seg.pt`.
 
   |  YOLOv8  |  <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/08770080-bf20-470b-8269-eee7a7c41acc" width="350px">  |
   | :-------------: | :-------------: |
   |  **YOLOv8-seg**  |  <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/7bb6650c-769d-41c1-86f7-39fcbf01bc7c" width="350px">  |
-  
+
   See also: https://docs.ultralytics.com/models/
 - `input_topic`: Topic name for input image.
 - `result_topic`: Topic name of the custom message containing the 2D bounding box and the mask image.
@@ -95,7 +95,7 @@ For yolov8, you can choose `yolov8*.pt`, `yolov8*-seg.pt`.
   ```xml
   <param name="classes" value="0, 1" value-sep=", "/> <!-- person, bicycle -->
   ```
-  See also: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml 
+  See also: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml
 - `result_conf`:  Whether to plot the detection confidence score.
 - `result_line_width`: Line width of the bounding boxes.
 - `result_font_size`: Font size of the text.
@@ -113,65 +113,3 @@ For yolov8, you can choose `yolov8*.pt`, `yolov8*-seg.pt`.
     vision_msgs/Detection2DArray detections
     sensor_msgs/Image[] masks
     ```
-
-## `tracker_with_cloud_node`
-### Params
-- `camera_info_topic`: Topic name for camera info.
-- `lidar_topic`: Topic name for lidar.
-- `yolo_result_topic`: Topic name of the custom message containing the 2D bounding box and the mask image.
-- `yolo_3d_result_topic`: Topic name for 3D bounding box.
-- `cluster_tolerance`: Spatial cluster tolerance as a measure in the L2 Euclidean space.
-- `voxel_leaf_size`: Voxel size for pointcloud downsampling.
-- `min_cluster_size`: Minimum number of points that a cluster needs to contain.
-- `max_cluster_size`: Maximum number of points that a cluster needs to contain.
-### Topics
-- Subscribed Topics:
-  - Camera info from `camera_info_topic` parameter. ([sensor_msgs/CameraInfo](https://docs.ros.org/en/api/sensor_msgs/html/msg/CameraInfo.html))
-  - Lidar data from `lidar_topic` parameter. ([sensor_msgs/PointCloud2](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html))
-  - Detected objects(2D bounding box, mask image) from `yolo_result_topic` parameter. (ultralytics_ros/YoloResult)
-    ```
-    std_msgs/Header header
-    vision_msgs/Detection2DArray detections
-    sensor_msgs/Image[] masks
-    ```
-- Published Topics:
-  - Detected cloud points to `/detection_cloud` topic. ([sensor_msgs/PointCloud2](https://docs.ros.org/en/api/sensor_msgs/html/msg/PointCloud2.html))
-  - Detected objects(3D bounding box) to `yolo_3d_result_topic` parameter. ([vision_msgs/Detection3DArray](http://docs.ros.org/en/lunar/api/vision_msgs/html/msg/Detection3DArray.html))
-  - Visualization markers to `/detection_marker` topic. ([visualization_msgs/MarkerArray](https://docs.ros.org/en/api/visualization_msgs/html/msg/MarkerArray.html))
-
-## Docker with KITTI datasets 🐳
-[![dockeri.co](https://dockerico.blankenship.io/image/alpacazip/ultralytics_ros)](https://hub.docker.com/r/alpacazip/ultralytics_ros)
-
-### Docker Pull & Run
-**ROS Melodic**
-```bash
-$ docker pull alpacazip/ultralytics_ros:melodic
-$ docker run -p 6080:80 --shm-size=512m alpacazip/ultralytics_ros:melodic
-```
-**ROS Noetic**
-```bash
-$ docker pull alpacazip/ultralytics_ros:noetic
-$ docker run -p 6080:80 --shm-size=512m alpacazip/ultralytics_ros:noetic
-```
-**ROS 2 Humble**
-```bash
-$ docker pull alpacazip/ultralytics_ros:humble
-$ docker run -p 6080:80 --shm-size=512m alpacazip/ultralytics_ros:humble
-```
-### Run tracker_node & tracker_with_cloud_node
-**ROS Melodic**
-```bash
-$ roscd ultralytics_ros && pipenv shell
-$ roslaunch ultralytics_ros kitti_predict_with_cloud.launch
-$ cd ~/catkin_ws/src/ultralytics_ros/rosbag && rosbag play kitti_2011_09_26_drive_0106_synced.bag --clock --loop
-```
-**ROS Noetic**
-```bash
-$ roslaunch ultralytics_ros kitti_tracker_with_cloud.launch
-$ cd ~/catkin_ws/src/ultralytics_ros/rosbag && rosbag play kitti_2011_09_26_drive_0106_synced.bag --clock --loop
-```
-**ROS 2 Humble**
-```bash
-$ ros2 launch ultralytics_ros kitti_tracker_with_cloud.launch.xml
-$ cd ~/colcon_ws/src/ultralytics_ros/ros2bag && ros2 bag play kitti_2011_09_26_drive_0106_synced --clock --loop
-```
