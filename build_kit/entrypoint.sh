@@ -554,10 +554,12 @@ main() {
     validate_ros_workspace
     source_ros_entrypoint
     source_workspace_setup
-    configure_zenoh
     
-    # Parse MAKE87_CONFIG and set ROS2 parameters
+    # Parse MAKE87_CONFIG and set ROS2 parameters first
     parse_make87_config
+    
+    # Configure Zenoh after parsing config (needed for subscriber endpoints)
+    configure_zenoh
 
     # Launch ROS2 node with parameters
     log_info "Launching ROS2 node: ${PACKAGE_NAME}/${NODE_NAME}"
