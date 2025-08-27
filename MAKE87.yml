@@ -1,0 +1,54 @@
+version: 1
+interfaces:
+  - name: ros
+    protocol: zenoh
+    default_port:
+      name: zenoh
+      protocol: TCP
+      target_port: 7447
+    subscribers:
+      - name: input_image
+        spec:
+          string: ros2.sensor_msgs.msg.Image
+        encoding: cdr
+    publishers:
+      - name: result_image
+        spec:
+          string: ros2.sensor_msgs.msg.Image
+        encoding: cdr
+      - name: detections
+        spec:
+          string: ros2.ultralytics_ros.msg.YoloResult
+        encoding: cdr
+config:
+  type: object
+  properties:
+    yolo_model:
+      type: string
+      description: YOLO model to use for detection
+      default: "yolov8n.pt"
+    confidence_threshold:
+      type: number
+      description: Confidence threshold for detections
+      default: 0.25
+    iou_threshold:
+      type: number
+      description: IoU threshold for Non-Maximum Suppression
+      default: 0.45
+    tracker_type:
+      type: string
+      description: Type of tracker to use (bytetrack, botsort)
+      default: "bytetrack"
+    device:
+      type: string
+      description: Device to run inference on (cpu, cuda, mps)
+      default: "cpu"
+  required: []
+container_config:
+  environment:
+    ROS_DOMAIN_ID: 87
+  volumes:
+    - /etc/localtime:/etc/localtime:ro
+build:
+  custom:
+    dockerfile: build_kit/Dockerfile
