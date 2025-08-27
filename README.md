@@ -77,31 +77,11 @@ For yolov8, you can choose `yolov8*.pt`, `yolov8*-seg.pt`.
   |  **YOLOv8-seg**  |  <img src="https://github.com/Alpaca-zip/ultralytics_ros/assets/84959376/7bb6650c-769d-41c1-86f7-39fcbf01bc7c" width="350px">  |
 
   See also: https://docs.ultralytics.com/models/
-- `input_topic`: Topic name for input image.
-- `result_topic`: Topic name of the custom message containing the 2D bounding box and the mask image.
-- `result_image_topic`: Topic name of the image on which the detection and segmentation results are plotted.
-- `conf_thres`: Confidence threshold below which boxes will be filtered out.
-- `iou_thres`: IoU threshold below which boxes will be filtered out during NMS.
-- `max_det`: Maximum number of boxes to keep after NMS.
-- `tracker`: Tracking algorithms.
-- `device`: Device to run the model on(e.g. cpu or cuda:0).
-  ```xml
-  <arg name="device" default="cpu"/>
-  ```
-  ```xml
-  <arg name="device" default="cuda:0"/>
-  ```
-- `classes`: List of class indices to consider.
-  ```xml
-  <param name="classes" value="0, 1" value-sep=", "/> <!-- person, bicycle -->
-  ```
-  See also: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/coco128.yaml
-- `result_conf`:  Whether to plot the detection confidence score.
-- `result_line_width`: Line width of the bounding boxes.
-- `result_font_size`: Font size of the text.
-- `result_labels`: Font to use for the text.
-- `result_font`: Whether to plot the label of bounding boxes.
-- `result_boxes`: Whether to plot the bounding boxes.
+- `confidence_threshold`: Confidence threshold below which boxes will be filtered out (default: 0.25).
+- `iou_threshold`: IoU threshold below which boxes will be filtered out during NMS (default: 0.45).
+- `tracker_type`: Tracking algorithms (bytetrack, botsort) (default: "bytetrack").
+
+**Note**: Topic names (`input_topic`, `result_topic`, `result_image_topic`) are configured through the MAKE87 platform interface definitions.
 ### Topics
 - Subscribed Topics:
   - Image data from `input_topic` parameter. ([sensor_msgs/Image](https://github.com/ros2/common_interfaces/blob/humble/sensor_msgs/msg/Image.msg))

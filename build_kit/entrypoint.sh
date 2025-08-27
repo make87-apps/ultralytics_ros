@@ -432,7 +432,6 @@ parse_make87_config() {
     export ROS2_CONFIDENCE_THRESHOLD=$(echo "${MAKE87_CONFIG}" | jq -r '.config.confidence_threshold // 0.25')
     export ROS2_IOU_THRESHOLD=$(echo "${MAKE87_CONFIG}" | jq -r '.config.iou_threshold // 0.45')
     export ROS2_TRACKER_TYPE=$(echo "${MAKE87_CONFIG}" | jq -r '.config.tracker_type // "bytetrack"')
-    export ROS2_DEVICE=$(echo "${MAKE87_CONFIG}" | jq -r '.config.device // "cpu"')
 
     # Override topic names from interface definitions if they exist
     local input_topic_from_interface
@@ -493,7 +492,6 @@ parse_make87_config() {
     log_info "  Confidence threshold: ${ROS2_CONFIDENCE_THRESHOLD}"
     log_info "  IoU threshold: ${ROS2_IOU_THRESHOLD}"
     log_info "  Tracker type: ${ROS2_TRACKER_TYPE}"
-    log_info "  Device: ${ROS2_DEVICE}"
 }
 
 configure_zenoh() {
@@ -587,8 +585,7 @@ main() {
         -p yolo_model:="${ROS2_YOLO_MODEL}" \
         -p confidence_threshold:=${ROS2_CONFIDENCE_THRESHOLD} \
         -p iou_threshold:=${ROS2_IOU_THRESHOLD} \
-        -p tracker_type:="${ROS2_TRACKER_TYPE}" \
-        -p device:="${ROS2_DEVICE}"
+        -p tracker_type:="${ROS2_TRACKER_TYPE}"
 }
 
 #==============================================================================

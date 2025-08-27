@@ -39,10 +39,6 @@ config:
       type: string
       description: Type of tracker to use (bytetrack, botsort)
       default: "bytetrack"
-    device:
-      type: string
-      description: Device to run inference on (cpu, cuda, mps)
-      default: "cpu"
   required: []
 container_config:
   environment:
