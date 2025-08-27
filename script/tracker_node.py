@@ -29,6 +29,13 @@ from ultralytics_ros.msg import YoloResult
 
 
 class TrackerNode(Node):
+    def _sanitize_topic_name(self, topic_name):
+        """
+        Sanitize topic name by adding make87_ prefix and replacing hyphens with underscores
+        """
+        sanitized_topic = "make87_" + topic_name
+        return sanitized_topic.replace('-', '_')
+        
     def __init__(self):
         super().__init__("tracker_node")
         self.declare_parameter("yolo_model", "yolov8n.pt")
@@ -65,9 +72,14 @@ class TrackerNode(Node):
         result_image_topic = (
             self.get_parameter("result_image_topic").get_parameter_value().string_value
         )
+        
+        # Sanitize publisher topic names
+        sanitized_result_topic = self._sanitize_topic_name(result_topic)
+        sanitized_result_image_topic = self._sanitize_topic_name(result_image_topic)
+        
         self.create_subscription(Image, input_topic, self.image_callback, 1)
-        self.results_pub = self.create_publisher(YoloResult, result_topic, 1)
-        self.result_image_pub = self.create_publisher(Image, result_image_topic, 1)
+        self.results_pub = self.create_publisher(YoloResult, sanitized_result_topic, 1)
+        self.result_image_pub = self.create_publisher(Image, sanitized_result_image_topic, 1)
 
     def image_callback(self, msg):
         cv_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding="bgr8")
