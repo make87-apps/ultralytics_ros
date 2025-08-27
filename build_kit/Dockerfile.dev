@@ -1,0 +1,47 @@
+# ── make87 ROS 2 dev base ───────────────────────────────────────────────────────
+# Multi-arch (amd64/arm64) official image; Humble on Ubuntu 22.04 (Jammy)
+ARG ROS_DISTRO=humble
+FROM ros:${ROS_DISTRO}-ros-base
+
+# Use bash for RUN so we can `source` easily if needed
+SHELL ["/bin/bash", "-c"]
+
+# Locale + dev tools + ROS build tooling + Python packages
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    ros-dev-tools \
+    python3-colcon-common-extensions \
+    python3-vcstool \
+    python3-pip \
+    fastdds-tools \
+    ros-${ROS_DISTRO}-rmw-zenoh-cpp \
+    ros-${ROS_DISTRO}-cv-bridge \
+    ros-${ROS_DISTRO}-vision-msgs \
+    ros-${ROS_DISTRO}-image-view \
+    jq \
+    openssh-client \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /home/state/code
+
+# Copy the entrypoint script
+COPY build_kit/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+# Optional: keep a stable domain
+ENV ROS_DOMAIN_ID=87
+ENV RMW_IMPLEMENTATION=rmw_zenoh_cpp
+
+# Set development environment flag
+ENV IS_DEV_ENV=true
+
+# Set development paths for the entrypoint script (these are the defaults anyway)
+ENV PROJECT_DIR=/home/state/code
+ENV ROS_ENTRYPOINT=/ros_entrypoint.sh
+ENV SETUP_SCRIPT=install/setup.bash
+ENV PACKAGE_NAME=ultralytics_ros
+ENV NODE_NAME=tracker_node
+
+# Use our custom entrypoint script
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

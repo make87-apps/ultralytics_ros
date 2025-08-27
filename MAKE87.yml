@@ -48,3 +48,8 @@ container_config:
 build:
   custom:
     dockerfile: build_kit/Dockerfile
+dev_build:
+  custom:
+    dockerfile: build_kit/Dockerfile.dev
+  build_additions:
+    ssh: ssh_server
