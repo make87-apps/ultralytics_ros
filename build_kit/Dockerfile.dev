@@ -36,6 +36,9 @@ ENV RMW_IMPLEMENTATION=rmw_zenoh_cpp
 # Set development environment flag
 ENV IS_DEV_ENV=true
 
+# Configure pip to use CPU-only PyTorch as additional index (keeping PyPI as primary)
+ENV PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu
+
 # Set development paths for the entrypoint script (these are the defaults anyway)
 ENV PROJECT_DIR=/home/state/code
 ENV ROS_ENTRYPOINT=/ros_entrypoint.sh

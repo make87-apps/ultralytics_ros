@@ -25,6 +25,7 @@ rosidl_generate_interfaces(${PROJECT_NAME}
 install(PROGRAMS
   script/tracker_node.py
   DESTINATION lib/${PROJECT_NAME}
+  RENAME tracker_node
 )
 
 ament_package()

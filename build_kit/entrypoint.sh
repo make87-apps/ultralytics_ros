@@ -440,28 +440,16 @@ parse_make87_config() {
 
     # Extract topic names from subscribers (input_image)
     input_topic_from_interface=$(echo "${MAKE87_CONFIG}" | jq -r '
-        .interfaces[]? 
-        | select(.name == "ros")
-        | .subscribers[]?
-        | select(.name == "input_image")
-        | .topic_key // empty
+        .interfaces.ros.subscribers.input_image.topic_key // empty
     ')
 
     # Extract topic names from publishers (result_image and detections)
     result_image_topic_from_interface=$(echo "${MAKE87_CONFIG}" | jq -r '
-        .interfaces[]?
-        | select(.name == "ros")
-        | .publishers[]?
-        | select(.name == "result_image")
-        | .topic_key // empty
+        .interfaces.ros.publishers.result_image.topic_key // empty
     ')
 
     result_topic_from_interface=$(echo "${MAKE87_CONFIG}" | jq -r '
-        .interfaces[]?
-        | select(.name == "ros")
-        | .publishers[]?
-        | select(.name == "detections")
-        | .topic_key // empty
+        .interfaces.ros.publishers.detections.topic_key // empty
     ')
 
     # Use interface topic names if available, sanitize them

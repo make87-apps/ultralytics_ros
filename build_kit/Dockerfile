@@ -13,6 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-${ROS_DISTRO}-vision-msgs \
     && rm -rf /var/lib/apt/lists/*
 
+# Configure pip to use CPU-only PyTorch as additional index (keeping PyPI as primary)
+ENV PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu
+
 # Workspace lives at /opt/ws; your Docker build context is the repo root (.)
 WORKDIR /opt/ws
 COPY . .
@@ -40,6 +43,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     jq \
     git \
     && rm -rf /var/lib/apt/lists/*
+
+# Configure pip to use CPU-only PyTorch as additional index (keeping PyPI as primary)
+ENV PIP_EXTRA_INDEX_URL=https://download.pytorch.org/whl/cpu
 
 # Copy only the built install tree
 COPY --from=builder /opt/ws/install /opt/ws/install
